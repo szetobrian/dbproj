@@ -29,7 +29,7 @@ app = Flask(__name__, template_folder=tmpl_dir)
 #
 #     DATABASEURI = "postgresql://gravano:foobar@34.74.246.148/proj1part2"
 #
-DATABASEURI = "postgresql://user:password@34.74.246.148/proj1part2"
+DATABASEURI = "postgresql://asd2195:8308@34.74.246.148/proj1part2"
 
 
 #
@@ -41,39 +41,21 @@ engine = create_engine(DATABASEURI)
 # Example of running queries in your database
 # Note that this will probably not work if you already have a table named 'test' in your database, containing meaningful data. This is only an example showing you how to run queries in your database using SQLAlchemy.
 #
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-
-
 @app.before_request
 def before_request():
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request.
-
-  The variable g is globally accessible.
-  """
-  try:
-    g.conn = engine.connect()
-  except:
-    print("uh oh, problem connecting to database")
-    import traceback; traceback.print_exc()
-    g.conn = None
+    try:
+        g.conn = engine.connect()
+    except:
+        print("uh oh, problem connecting to database")
+        import traceback; traceback.print_exc()
+        g.conn = None
 
 @app.teardown_request
 def teardown_request(exception):
-  """
-  At the end of the web request, this makes sure to close the database connection.
-  If you don't, the database could run out of memory!
-  """
-  try:
-    g.conn.close()
-  except Exception as e:
-    pass
+    try:
+        g.conn.close()
+    except Exception as e:
+        pass
 
 
 #
@@ -91,86 +73,204 @@ def teardown_request(exception):
 #
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
+    """
+    request is a special object that Flask provides to access web request information:
 
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments, e.g., {a:1, b:2} for http://localhost?a=1&b=2
+    request.method:   "GET" or "POST"
+    request.form:     if the browser submitted a form, this contains the data in the form
+    request.args:     dictionary of URL arguments, e.g., {a:1, b:2} for http://localhost?a=1&b=2
 
-  See its API: https://flask.palletsprojects.com/en/2.0.x/api/?highlight=incoming%20request%20data
+    See its API: https://flask.palletsprojects.com/en/2.0.x/api/?highlight=incoming%20request%20data
 
-  """
+    """
+    """
+    print(request.args)
 
-  # DEBUG: this is debugging code to see what request looks like
-  print(request.args)
+    cursor = g.conn.execute("SELECT * FROM Airlines")
+    names = [ res for res in cursor ]
+    cursor.close()
+    """
+    """
+    cursor2 = g.conn.execute("SELECT * FROM Wk_in_Airport_Employees A, Shops S WHERE S.sname = A.sname")
+    pnames = [res for res in cursor2]
+    cursor2.close()
 
+    cursor3 = g.conn.execute("SELECT * FROM Wk_Flightcrew")
+    shops = [res for res in cursor3]
+    cursor3.close()
+    """
+    """
+    context = dict(data = names)
+    """
+    return render_template("index.html")
 
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
-  for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
-  cursor.close()
-
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  context = dict(data = names)
-
-
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
-  return render_template("index.html", **context)
-
-#
-# This is an example of a different path.  You can see it at:
-# 
-#     localhost:8111/another
-#
-# Notice that the function name is another() rather than index()
-# The functions for each app.route need to have different names
-#
 @app.route('/another')
 def another():
-  return render_template("another.html")
+    return render_template("another.html")
 
+@app.route('/home')
+def home():
+    return render_template("index.html")
+
+
+@app.route('/allAirlines')
+def allAirlines():
+    cursor = g.conn.execute('SELECT * FROM Airlines')
+    try:
+        results = [ res for res in cursor ]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results) == 0: 
+        print("no Airlines found") 
+        return render_template('another.html', error="no Airlines found")
+    else:
+        context = {}
+        context["allAirlines"]=results
+        return render_template('another.html', **context)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
 def add():
-  name = request.form['name']
-  g.conn.execute('INSERT INTO test(name) VALUES (%s)', name)
-  return redirect('/')
+    name = request.form['name']
+    num_planes = request.form['num_planes']
+    try:
+        g.conn.execute('INSERT INTO Airlines(aname, num_planes) VALUES (%s, %s)', name, num_planes)
+        cursor = g.conn.execute('SELECT * FROM Airlines')
+        results = [res for res in cursor ]
+    except:
+        print("couldn't get results")
+        return render_template('another.html', error="airlines exists already")
+    if len(results)==0:
+        print("no airlines found")
+        return render_template('another.html', error="no airlines found")
+    else:
+        context={}
+        context["airlines"] = results
+        return render_template('another.html', **context)
 
+@app.route('/newPlane', methods=['POST'])
+def newPlane():
+    model=request.form['model']
+    capacity=request.form['capacity']
+    fuel_capacity=request.form['fuel_capacity']
+    ran = request.form['ran']
+    try:
+        g.conn.execute('INSERT INTO Plane_Models(model, capacity, fuel_capacity, range) VALUES (%s, %s, %s, %s)', model, capacity, fuel_capacity, ran)
+        cursor = g.conn.execute('SELECT * FROM Plane_Models')
+    
+        results = [res for res in cursor ]
+    except:
+        print("couldn't get results")
+        return render_template('another.html', error="plane already exists")
+    if len(results)==0:
+        print("no plane models found")
+        return render_template('another.html', error="no plane models found")
+    else:
+        context={}
+        context["models"] = results
+        return render_template('another.html', **context)
 
+@app.route('/passenger', methods=['GET'])
+def passenger():
+    pname = request.args.get('pname')
+    cursor = g.conn.execute('SELECT * FROM Passengers_En_Route P WHERE P.pname=%s',pname)
+    try:
+        results = [ res for res in cursor ]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results) == 0: 
+        print("no passenger found") 
+        return render_template('another.html', error="no passenger found")
+    else:
+        context = {}
+        context["passenger"]=results[0]
+        return render_template('another.html', **context)
+
+@app.route('/terminal', methods=['GET'])
+def terminal():
+    ename= request.args.get('ename')
+    cursor =g.conn.execute('SELECT A.ename, S.sname,  S.terminal FROM Wk_in_Airport_Employees A, Shops S WHERE S.sname = A.sname AND A.ename = %s', ename)
+    try:
+        results = [res for res in cursor ]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results)==0:
+        print("no workers found")
+        return render_template('another.html', error="no worker found")
+    else:
+        context={}
+        context["terminal"] = results[0]
+        return render_template('another.html', **context)
+
+@app.route('/pilots', methods=['GET'])
+def find_pilots():
+    aname=request.args.get('aname')
+    cursor = g.conn.execute('SELECT F.aname, F.ename FROM Wk_Flightcrew F WHERE F.aname=%s', aname)
+    try:
+        results = [res for res in cursor]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results)==0:
+        print("no workers found")
+        return render_template('another.html', error="no worker found")
+    else:
+        context={}
+        context["pilot"] = results
+        return render_template('another.html', **context)
+@app.route('/updatePlanes', methods=['POST'])
+def updatePlanes():
+    aname = request.form['aname']
+    model = request.form['model']
+    quantity = request.form['quantity']
+    g.conn.execute('UPDATE Owns_Planes SET quantity = %s  WHERE aname=%s AND model=%s',quantity, aname, model)
+    cursor = g.conn.execute('SELECT * FROM Owns_planes')
+    try:
+        results = [res for res in cursor]
+    except:
+        print("couldn't update")
+        exit()
+    if len(results)==0:
+        print("no update possible")
+        return render_template('another.html', error="no routes found")
+    else:
+        context={}
+        context["newOwns"] = results
+        return render_template('another.html', **context)
+@app.route('/routes', methods=['GET'])
+def find_routes():
+    depart=request.args.get('depart')
+    cursor = g.conn.execute('SELECT * FROM Routes_Flown RF WHERE RF.departure_location=%s', depart)
+    try:
+        results = [res for res in cursor]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results)==0:
+        print("no routes found")
+        return render_template('another.html', error="no routes found")
+    else:
+        context={}
+        context["routes"] = results
+        return render_template('another.html', **context)
+@app.route('/owns', methods=['GET'])
+def owns():
+    cursor=g.conn.execute('SELECT * FROM Owns_planes')
+    try:
+        results = [res for res in cursor]
+    except:
+        print("couldn't get results")
+        exit()
+    if len(results)==0:
+        print("no ownership found")
+        return render_template('index.html', error="no ownership found")
+    else:
+        context={}
+        context["owns"] = results
+        return render_template('index.html', **context)
 @app.route('/login')
 def login():
     abort(401)

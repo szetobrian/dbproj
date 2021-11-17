@@ -1,1 +1,62 @@
-hello, I am another file!
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+</html>
+
+<body>
+{% if error %}
+{{error}}
+{% endif %}
+{% if allAirlines %}
+    <h1> All Airlines </h1>
+    {% for n in allAirlines %}
+        <div>Airline: {{n[0]}}</div>
+    {% endfor %}
+{% endif %}
+{% if airlines %}
+    <h1> Updated Airlines </h1>
+    {% for n in airlines %}
+        <div>Airline: {{n[0]}}, Number of Planes{{n[1]}}</div>
+    {% endfor %}
+{% endif %}
+
+{% if passenger %}
+    <h1>Passenger Information</h1>
+    <div>Airline Name:{{passenger[0]}}, Passenger Name: {{passenger[1]}}, Seat: {{passenger[2]}}, Passport Number: {{passenger[3]}}, Ticket Number: {{passenger[4]}}, Destination: {{passenger[5]}}, Departure Location: {{passenger[6]}}, Departure Time: {{passenger[7]}}</div>
+{% endif %}
+{% if terminal %}
+    <h1> Employee Location </h1>
+    <div> Employee: {{terminal[0]}},  Shop: {{terminal[1]}}, Terminal: {{terminal[2]}}</div>
+{% endif %}
+{%if models %}
+    <h1>Plane Models</h1>
+    {% for n in models %}
+        <div>Plane Model: {{n[0]}}, Capacity: {{n[1]}}, Fuel Capacity {{n[2]}}, Range {{n[3]}}</div>
+    {% endfor %}
+{% endif %}
+{% if pilot %}
+    <h1>Pilots</h1>
+    {%  for n in pilot %}
+        <div>Airlines: {{n[0]}}, Pilot: {{n[1]}}</div>
+    {% endfor %}
+{% endif %}
+{%if routes %}
+    <h1>Available Routes</h1>
+    {% for n in routes %}
+        <div>Destination: {{n[0]}},  Departure Location: {{n[1]}}, Departure Time {{n[2]}}, Arrival Time {{n[3]}}, Airline {{n[4]}}</div>
+    {% endfor %}
+{% endif %}
+{% if newOwns %}
+    <h1> Updated Planes Owned </h1>
+    {% for n in newOwns %}
+        <div> Airlines: {{n[0]}}, Model: {{n[1]}}, Quantity: {{n[2]}}</div>
+    {% endfor %}
+{% endif %}
+<p><a href="home">Go back to Home Page</a></p>
+
+</body>
+

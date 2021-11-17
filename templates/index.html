@@ -8,20 +8,88 @@
 
 
 <body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{data}}</div>
-
+  <h1>See all Airlines</h1>
+  <form method = "GET" action="/allAirlines">
+    <p>Click to view Airlines: <input type="submit" value="Airlines">
+  </form>
+  <h1>Add an Airline</h1>
+  <!--
   <div>
     {% for n in data %}
-    <div>{{n}}</div>
+    <div>Airlines: {{n}}</div>
     {% endfor %}
-  </div>
-
-<p><a href="another">Go to the other page</a></p>
+  </div> -->
 
 <form method="POST" action="/add">
-<p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
+<p>Name of new airline: <input type="text" name="name"> 
+						<input type="text" name="num_planes">
+						<input type="submit" value="Add"></p>
 </form>
+  <h1>Passenger Search</h1>
+<form method = "GET" action="/passenger">
+<p>Name of passenger: <input type"text" name="pname">
+                      <input type="submit" value="Search"></p>
+</form>
+<h1>Locate an Employee</h1>
+<form method = "GET" action="/terminal">
+<p>Employee Name: <input type="text" name="ename">
+                  <input type="submit" value="Locate">
+</form>
+<h1>Find your Pilots!</h1>
+<form method = "GET" action="/pilots">
+<p> Airlines: <input type="text" name="aname">
+              <input type="submit" value="Find">
+</form>
+
+<h1> Add a Plane Model </h1>
+<form method="POST" action="/newPlane">
+<p> Plane Model: <input type="text" name="model">
+<p>Capacity:     <input type="text" name="capacity">
+<p>Fuel Capacity <input type="text" name="fuel_capacity">
+<p>Range:        <input type="text" name="ran">
+                 <input type="submit" value="Add">
+</form>
+<h1>Find a Route to Depart From!</h1>
+<form method = "GET" action="/routes">
+<p> Departure Location: <input type="text" name="depart">
+              <input type="submit" value="Find Route">
+</form>
+</form>
+
+<h1>Update Number of Planes owned by Airlines</h1>
+<form method="GET" action="/owns">
+        <input type="submit" value="start update">
+</form>
+{% if error %}
+{{error}}
+{% endif %}
+{% if passenger %}
+    <div>Airline Name:{{passenger[0]}}, Passenger Name: {{passenger[1]}}, Seat: {{passenger[2]}}, Passport Number: {{passenger[3]}}, Ticket Number: {{passenger[4]}}, Destination: {{passenger[5]}}, Departure Location: {{passenger[6]}}, Departure Time: {{passenger[7]}}</div>
+{% endif %}
+{% if terminal %}
+    <div> Employee: {{terminal[0]}},  Shop: {{terminal[1]}}, Terminal: {{terminal[2]}}</div>
+{% endif %}
+{%if models %}
+    {% for n in models %}
+        <div>Plane Model: {{n[0]}}, Capacity: {{n[1]}}, Fuel Capacity {{n[2]}}, Range {{n[3]}}</div>
+    {% endfor %}
+{% endif %}
+{% if pilot %}
+    {%  for n in pilot %}
+        <div>Airlines: {{n[0]}}, Pilot: {{n[1]}}</div>
+    {% endfor %}
+{% endif %}
+{% if owns %}
+    {% for n in owns %}
+        <div> Airlines: {{n[0]}}, Models: {{n[1]}}, Quantity: {{n[2]}}</div>
+    {% endfor %}
+    <form method="POST" action="/updatePlanes">
+    <p>Airlines <input type="text" name="aname">
+       Model    <input type="text" name="model">
+       Quantity <input type="text" name="quantity">
+                <input type="submit" value="Update">
+    </form>
+{% endif %}
 
 </body>
 
